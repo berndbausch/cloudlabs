@@ -1,0 +1,25 @@
+heat_template_version: 2015-10-15
+
+parameters:
+   net_name:
+     type: string
+     default: private
+     description: Name of private network to be created
+
+resources:
+
+   my_servers: 
+      type: OS::Heat::AutoScalingGroup 
+      properties: 
+         desired_capacity: 10 
+         min_size: 10
+         max_size: 10
+         resource:
+            type: OS::Nova::Server
+            properties:
+               config_drive: true
+               key_name: 'demokey'
+               image: 'cirros'
+               flavor: 1
+               networks: [ network: { get_param: net_name } ]
+

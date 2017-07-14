@@ -1,0 +1,49 @@
+heat_template_version: 2015-10-15
+
+parameters:
+   net_name:
+     type: string
+     default: private
+     description: Name of private network to be created
+
+resources:
+
+   my_servers: 
+      type: OS::Heat::AutoScalingGroup 
+      properties: 
+         desired_capacity: 4
+         min_size: 1
+         max_size: 10
+         resource:
+            type: OS::Nova::Server
+            properties:
+               config_drive: true
+               key_name: 'demokey'
+               image: 'cirros'
+               flavor: 1
+               networks: [ network: { get_param: net_name } ]
+
+   more_servers:
+      type: OS::Heat::ScalingPolicy
+      properties:
+         adjustment_type: change_in_capacity
+         auto_scaling_group_id: { get_resource: my_servers }
+         cooldown: 60
+         scaling_adjustment: 1
+
+   fewer_servers:
+      type: OS::Heat::ScalingPolicy
+      properties:
+         adjustment_type: change_in_capacity
+         auto_scaling_group_id: { get_resource: my_servers }
+         cooldown: 60
+         scaling_adjustment: -1
+
+outputs: 
+   url_to_scale_up:
+      description: An HTTP POST to this URL triggers the more_servers policy
+      value: {get_attr: [more_servers, alarm_url]} 
+   url_to_scale_down:
+      description: An HTTP POST to this URL triggers the fewer_servers policy
+      value: {get_attr: [fewer_servers, alarm_url]}
+

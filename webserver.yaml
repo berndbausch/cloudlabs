@@ -1,0 +1,47 @@
+heat_template_version: 2015-10-15
+
+resources:
+
+   provision_webserver:
+      type: OS::Heat::CloudConfig
+      properties:
+         cloud_config:
+             manage_etc_hosts: true
+             hostname: webserver
+             package_update: true
+             packages:
+                - apache2
+             write_files:
+                - content: |
+                     <html>
+                     <body>
+                     <h1>Welcome to the web server!</h1>
+                     </body>
+                     </html>
+                  path: /var/www/html/index.html
+                
+   fip:
+      type: OS::Neutron::FloatingIP
+      properties:
+         floating_network: 'public'
+         port_id: { get_attr: [ myserver, addresses, private, 0, port] }
+      
+   webports:
+     type: OS::Neutron::SecurityGroup
+     properties:
+       rules: 
+          - {"ethertype": IPv4, "port_range_min": 80, "protocol": tcp, "port_range_max": 80}
+          - {"ethertype": IPv4, "port_range_min": 443, "protocol": tcp, "port_range_max": 443}
+
+   myserver:
+      type: OS::Nova::Server
+      properties:
+         config_drive: true
+         key_name: 'demokey'
+         security_groups: [ 'ssh', { get_resource: webports } ]         
+         image: 'ubuntu'
+         flavor: 2
+         networks: [ network: private ]
+         user_data: { get_resource: provision_webserver }
+         user_data_format: RAW
+
