@@ -1,1 +1,2 @@
-Files used for cloud training lab exercises
+Files used in Pluralsight training course *RHCSA for OpenStack*
+
