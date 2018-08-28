@@ -1,0 +1,33 @@
+heat_template_version: newton
+
+parameters:
+  ssh_key:
+    type: string
+    description: Key pair for password-less login
+
+resources:
+
+   sshgroup:
+      type: OS::Neutron::SecurityGroup
+      properties:
+         rules:
+            - protocol: tcp
+              port_range_min: 22
+              port_range_max: 22
+            - protocol: icmp
+
+   nested_server:
+      type: OS::Nova::Server
+      properties:
+         config_drive: true
+         key_name: { get_param: ssh_key }
+         image: cirros
+         flavor: 1
+         security_groups: [ { get_resource: sshgroup } ]
+         networks:
+           - network: 'private'
+
+outputs:
+
+   server_id:
+      value: { get_resource: nested_server }

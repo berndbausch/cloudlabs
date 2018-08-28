@@ -1,0 +1,13 @@
+heat_template_version: newton
+
+resources:
+   myserver:
+      type: OS::Nova::Server
+      properties:
+         config_drive: true
+         key_name: 'demokey'
+         image: 'cirros'
+         flavor: 1
+         networks:
+           - network: 'private'
+

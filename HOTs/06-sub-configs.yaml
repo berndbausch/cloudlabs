@@ -1,0 +1,42 @@
+heat_template_version: newton
+
+resources:
+
+   deploy_httpd:
+      type: OS::Heat::CloudConfig
+      properties:
+         cloud_config:
+            packages: [ httpd ]
+            write_files:
+             - content: |
+                <html>
+                <body>
+                <h1>Web server is up and running!</h1>
+                </body>
+                </html>
+               path: /var/www/html/index.html
+             - content: nameserver 8.8.8.8
+               path: /etc/resolv.conf
+
+   start_httpd:
+      type: OS::Heat::SoftwareConfig
+      properties:
+         config: |
+            #!/bin/sh
+            echo Trying to start httpd
+            while ! systemctl start httpd 
+            do sleep 5
+            done
+            echo Enabling httpd
+            systemctl enable httpd
+     
+   httpd:
+      type: OS::Heat::MultipartMime
+      properties:
+         parts:
+         - config: { get_resource: deploy_httpd }
+         - config: { get_resource: start_httpd }
+
+outputs:
+   config:
+      value: { get_attr: [ httpd, config ] }

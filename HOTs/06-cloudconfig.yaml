@@ -1,0 +1,57 @@
+heat_template_version: newton
+
+parameters:
+  keyname:
+    type: string
+    default: mykey
+    description: Key pair for password-less login
+  imgname:
+    type: string
+
+resources:
+   deploy_httpd:
+      type: OS::Heat::CloudConfig
+      properties:
+         cloud_config:
+            packages: [ httpd ]
+            write_files:
+             - content: |
+                <html>
+                <body>
+                <h1>Web server is up and running!</h1>
+                </body>
+                </html>
+               path: /var/www/html/index.html
+             - content: nameserver 8.8.8.8
+               path: /etc/resolv.conf
+
+   fip:
+      type: OS::Nova::FloatingIP
+      properties:
+         pool: public
+   fip_assoc:
+      type: OS::Nova::FloatingIPAssociation
+      properties:
+         server_id: { get_resource: myserver }
+         floating_ip: { get_resource: fip }
+
+   myserver:
+      type: OS::Nova::Server
+      properties:
+         config_drive: true
+         key_name: { get_param: keyname }
+         image: { get_param: imgname }
+         flavor: 2
+         security_groups: [ ssh ]
+         user_data_format: RAW
+         user_data: { get_resource: deploy_httpd }
+         networks:
+           - network: 'private'
+
+outputs:
+
+   fip_address:
+      description: Floating IP address value
+      value: 
+         get_attr: [ fip, ip ] 
+

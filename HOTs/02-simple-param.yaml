@@ -1,0 +1,21 @@
+heat_template_version: newton
+
+parameters:
+  keyname:
+    type: string
+    default: mykey
+    description: Key pair for password-less login
+  imgname:
+    type: string
+
+resources:
+   myserver:
+      type: OS::Nova::Server
+      properties:
+         config_drive: true
+         key_name: { get_param: keyname }
+         image: { get_param: imgname }
+         flavor: 1
+         networks:
+           - network: 'private'
+

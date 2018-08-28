@@ -1,0 +1,17 @@
+heat_template_version: newton
+
+resources:
+   myserver:
+      type: 05-sub-server.yaml
+      properties:
+         ssh_key: mykey
+
+   myfip:
+      type: 05-sub-fip.yaml
+      properties:
+         server: { get_attr: [ myserver, server_id ] }
+
+outputs:
+   fip_address:
+      value: { get_attr: [ myfip, fip_address ] }
+

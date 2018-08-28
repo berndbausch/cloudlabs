@@ -1,0 +1,24 @@
+heat_template_version: newton
+
+parameters:
+  server:
+    type: string
+    description: Key pair for password-less login
+
+resources:
+
+   fip:
+      type: OS::Nova::FloatingIP
+      properties:
+         pool: public
+   fip_assoc:
+      type: OS::Nova::FloatingIPAssociation
+      properties:
+         server_id: { get_param: server }
+         floating_ip: { get_resource: fip }
+
+outputs:
+   fip_address:
+      description: Floating IP address
+      value: { get_attr: [ fip, ip ] }
+
